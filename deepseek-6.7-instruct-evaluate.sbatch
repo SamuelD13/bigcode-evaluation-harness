@@ -19,8 +19,7 @@ conda activate eval
 cd /home/sam/bigcode-evaluation-harness
 python main.py \
 --model deepseek-ai/deepseek-coder-6.7b-instruct  \
---tasks humanevalexplaindescribe-python \
---generation_only \
+--tasks humanevalexplainsynthesize-python \
 --do_sample False \
 --n_samples 1 \
 --batch_size 1 \
@@ -28,6 +27,8 @@ python main.py \
 --save_generations \
 --trust_remote_code \
 --prompt deepseek \
---save_generations_path generations_humanevalexplaindescribepython_deepseek-coder-6.7b-instruct-4bit.json \
+--load_data_path generations_humanevalexplaindescribepython_deepseek-coder-6.7b-instruct_humanevalexplaindescribe-python.json \
+--save_generations_path generations_humanevalexplainsynthesizepython_deepseek-coder-6.7b-instruct.json \
+--metric_output_path evaluation_humanevalexplainpython_deepseek-coder-6.7b-instruct.json \
 --max_length_generation 2048 \
---load_in_8bit
+--precision bf16
