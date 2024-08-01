@@ -8,7 +8,7 @@ TODO: Write a Short Description of the task.
 Homepage: TODO: Add the URL to the task's Homepage here.
 """
 from bigcode_eval.base import Task
-from evaluate import bleu
+from evaluate import load
 
 # TODO: Add the BibTeX citation for the task.
 _CITATION = """
@@ -28,13 +28,13 @@ class CompareEval(Task):
         super().__init__(
             # TODO: Specify the list of stop words in `stop_words` for the code generation task \
             # and if the evaluation requires executing the generated code in `requires_execution`.
-            stop_words=[],
+            stop_words=["<|EOS|>"],
             requires_execution=False,
         )
 
     def get_dataset(self):
         """Returns dataset for the task or an iterable of any object, that get_prompt can handle"""
-        return self.dataset["test"]
+        return self.dataset['train']
 
     def fewshot_examples(self):
         # TODO: load few-shot examples (from bigcode_eval/tasks/fewshot_examples) if they exist
@@ -49,7 +49,9 @@ class CompareEval(Task):
             sample from the test dataset
         :return: str
         """
-        return doc['instruction']
+        inst = doc['instruction'].strip()
+        prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\n{inst}\n### Response:\n"
+        return prompt
 
     def get_reference(self, doc):
         # TODO: get the reference solution from a sample `doc` from the dataset
@@ -59,7 +61,7 @@ class CompareEval(Task):
             sample from the test dataset
         :return: str
         """
-        return doc['output']
+        return doc['output'].strip()
 
     def postprocess_generation(self, generation, idx):
         # TODO: define the postprocessing for the LM generation
@@ -71,7 +73,12 @@ class CompareEval(Task):
             index of doc in the dataset to which the generation belongs
         :return: str
         """
-        return ""
+        prompt = self.get_prompt(self.get_dataset()[idx])
+        generation = generation[len(prompt):].strip()
+        for word in self.stop_words:
+            if word in generation:
+                generation = generation[:generation.find(word)]
+        return generation.rstrip()
 
     def process_results(self, generations, references):
         # TODO: define how the evaluation score is computed from list of \
@@ -89,11 +96,13 @@ class CompareEval(Task):
         bleu = load("bleu")
         gens = [gen[0] for gen in generations]
         results = bleu.compute(
-            references=references, predictions=gens, max_order=self.max_order, smooth=self.smooth
-        )
+            references=references, predictions=gens)
         return results
 
-if __name__ == "__main__":
-    #just testing a bit
-    task = CompareEval()
-    print(task.get_dataset())
+# if __name__ == "__main__":
+#     #just testing a bit
+#     task = CompareEval()
+#     ds = task.get_dataset()
+#     for sample in ds:
+#         print(task.get_prompt(sample))
+#         break
