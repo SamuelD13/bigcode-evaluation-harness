@@ -11,6 +11,7 @@ import re
 import typing
 
 from bigcode_eval.base import Task
+from evaluate import load
 
 _CITATION = """
 @article{husain2019codesearchnet,
@@ -200,11 +201,11 @@ class GeneralCodeToText(Task):
         :param references: list(str)
             list of str containing refrences (not needed for APPS Task)
         """
-        bleu_score = compute_codexglue_code_to_text_bleu(
-            (ref, gen[0]) for ref, gen in zip(references, generations)
-        )
-        return {"blue": bleu_score}
-
+        bleu = load("bleu")
+        gens = [gen[0] for gen in generations]
+        results = bleu.compute(
+            references=references, predictions=gens)
+        return results
 
 class LeftCodeToText(GeneralCodeToText):
     """Code to text task from CodeXGlue for Python subset in a left only setting:
