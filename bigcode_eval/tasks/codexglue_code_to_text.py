@@ -155,6 +155,7 @@ class GeneralCodeToText(Task):
             prompt_prefix = prompt_prefix.strip().removesuffix(TRIPLE_QUOTE)
             prompt_prefix = prompt_prefix.strip().removesuffix(SINGLE_TRIPLE_QUOTE)
             prompt = prompt_prefix + prompt_suffix + SUFFIX_PROMPT["python"]
+            prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\n{prompt}\n### Response:\n"
             return prompt
 
         elif self.DATASET_NAME == "ruby":
