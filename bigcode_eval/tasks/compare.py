@@ -9,9 +9,19 @@ Homepage: TODO: Add the URL to the task's Homepage here.
 """
 from bigcode_eval.base import Task
 from evaluate import load
+import json
 
 # TODO: Add the BibTeX citation for the task.
 _CITATION = """
+@misc{muennighoff2024octopackinstructiontuningcode,
+      title={OctoPack: Instruction Tuning Code Large Language Models}, 
+      author={Niklas Muennighoff and Qian Liu and Armel Zebaze and Qinkai Zheng and Binyuan Hui and Terry Yue Zhuo and Swayam Singh and Xiangru Tang and Leandro von Werra and Shayne Longpre},
+      year={2024},
+      eprint={2308.07124},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2308.07124}, 
+}
 """
 
 
@@ -37,20 +47,27 @@ class CompareEval(Task):
         return self.dataset['train']
 
     def fewshot_examples(self):
-        # TODO: load few-shot examples (from bigcode_eval/tasks/fewshot_examples) if they exist
         """Loads and returns the few-shot examples for the task if they exist."""
-        pass
+        with open(
+            "bigcode_eval/tasks/few_shot_examples/compareeval.json", "r"
+        ) as file:
+            examples = json.load(file)
+        return examples
+    
+    def get_instruction(self, old_code, new_code):
+        return f"Summarize the update between the two Python code using one sentence only in the form of a commit message. First code version:\n{old_code}\nSecond code version:\n{new_code}\n"
 
     def get_prompt(self, doc):
-        # TODO: build the prompt for the language model from a sample `doc` from the dataset
         """
         Builds the prompt for the LM to generate from.
         :param doc: dict[str: str]
             sample from the test dataset
         :return: str
         """
-        inst = doc['instruction'].strip()
-        prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\n{inst}\n### Response:\n"
+        inst = f"Summarize the update between the two Python code using one sentence only in the form of a commit message. First code version:\n{doc['old_contents']}\nSecond code version:\n{doc['new_contents']}\n"
+        examples = self.fewshot_examples()
+        few_shot_prompt = f"### Instruction:\n{self.get_instruction(examples['old_code'], examples['new_code'])}\n### Response:\n{examples['response']}"
+        prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n{few_shot_prompt}\n### Instruction:\n{inst}\n### Response:\n"
         return prompt
 
     def get_reference(self, doc):
@@ -61,7 +78,7 @@ class CompareEval(Task):
             sample from the test dataset
         :return: str
         """
-        return doc['output'].strip()
+        return doc['subject'].strip()
 
     def postprocess_generation(self, generation, idx):
         # TODO: define the postprocessing for the LM generation
@@ -99,10 +116,10 @@ class CompareEval(Task):
             references=references, predictions=gens)
         return results
 
-# if __name__ == "__main__":
-#     #just testing a bit
-#     task = CompareEval()
-#     ds = task.get_dataset()
-#     for sample in ds:
-#         print(task.get_prompt(sample))
-#         break
+if __name__ == "__main__":
+    #just testing a bit
+    task = CompareEval()
+    ds = task.get_dataset()
+    for sample in ds:
+        print(task.get_prompt(sample))
+        break
