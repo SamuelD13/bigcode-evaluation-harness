@@ -155,7 +155,10 @@ class GeneralCodeToText(Task):
             prompt_prefix = prompt_prefix.strip().removesuffix(TRIPLE_QUOTE)
             prompt_prefix = prompt_prefix.strip().removesuffix(SINGLE_TRIPLE_QUOTE)
             prompt = prompt_prefix + prompt_suffix + SUFFIX_PROMPT["python"]
-            prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\n{prompt}\n### Response:\n"
+
+            instruction = f"Provide a concise natural language description of the code using at most {len(doc['docstring'])} characters."
+            prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\n{instruction}\n{prompt}\n### Response:\n"
+
             return prompt
 
         elif self.DATASET_NAME == "ruby":
@@ -188,11 +191,12 @@ class GeneralCodeToText(Task):
             index of doc in the dataset to which the generation belongs
             (not used for this Task)
         """
-        delimiters = {language: SUFFIX_PROMPT["other"] for language in LANGUAGES}
-        delimiters.update(SUFFIX_PROMPT)
-        output = generation.split(delimiters[self.DATASET_NAME])[1].strip()
-        output = output.split("\n")[0]
-        return output
+        prompt = self.get_prompt(self.get_dataset()[idx])
+        generation = generation[len(prompt):].strip()
+        for word in self.stop_words:
+            if word in generation:
+                generation = generation[:generation.find(word)]
+        return generation.rstrip()
 
     def process_results(self, generations, references):
         """Takes the list of LM generations and evaluates them against ground truth references,
