@@ -1,6 +1,6 @@
 {
   "humanevalexplainsynthesize-python": {
-    "pass@1": 0.6280487804878049
+    "pass@1": 0.6341463414634146
   },
   "config": {
     "prefix": "",
@@ -21,7 +21,7 @@
     "instruction_tokens": null,
     "batch_size": 1,
     "max_length_generation": 2048,
-    "precision": "fp16",
+    "precision": "bf16",
     "load_in_8bit": false,
     "load_in_4bit": false,
     "left_padding": false,

@@ -34,7 +34,7 @@ class CompareEval(Task):
     # `DATASET_PATH`. If there aren't specific subsets you need, leave this as `None`.
     DATASET_NAME = None
 
-    def __init__(self):
+    def __init__(self, max_order=4, smooth=True):
         super().__init__(
             # TODO: Specify the list of stop words in `stop_words` for the code generation task \
             # and if the evaluation requires executing the generated code in `requires_execution`.
@@ -44,7 +44,7 @@ class CompareEval(Task):
 
     def get_dataset(self):
         """Returns dataset for the task or an iterable of any object, that get_prompt can handle"""
-        return self.dataset['train']
+        return self.dataset['test']
 
     def fewshot_examples(self):
         """Loads and returns the few-shot examples for the task if they exist."""
@@ -64,10 +64,8 @@ class CompareEval(Task):
             sample from the test dataset
         :return: str
         """
-        inst = f"Summarize the update between the two Python code using one sentence only in the form of a commit message. First code version:\n{doc['old_contents']}\nSecond code version:\n{doc['new_contents']}\n"
-        examples = self.fewshot_examples()
-        few_shot_prompt = f"### Instruction:\n{self.get_instruction(examples['old_code'], examples['new_code'])}\n### Response:\n{examples['response']}"
-        prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n{few_shot_prompt}\n### Instruction:\n{inst}\n### Response:\n"
+        inst = f"You will be given two Python code snippets: one is the original version, and the other is the updated version. Your task is to provide a clear, concise, and accurate short description of the update that was made in the updated version. Now, here are the original and updated code snippets for you to analyze:\nOriginal code:\n{doc['old_contents']}\nUpdated code:\n{doc['new_contents']}\n"
+        prompt = f"You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n{inst}\n### Instruction:\n{inst}\n### Response:\n"
         return prompt
 
     def get_reference(self, doc):
@@ -113,7 +111,7 @@ class CompareEval(Task):
         bleu = load("bleu")
         gens = [gen[0] for gen in generations]
         results = bleu.compute(
-            references=references, predictions=gens)
+            references=references, predictions=gens, max_order=4, smooth=True)
         return results
 
 if __name__ == "__main__":

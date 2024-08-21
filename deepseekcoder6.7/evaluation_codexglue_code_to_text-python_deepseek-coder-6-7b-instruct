@@ -1,16 +1,6 @@
 {
   "codexglue_code_to_text-python": {
-    "bleu": 0.01406676342022922,
-    "precisions": [
-      0.08695652173913043,
-      0.02187524155522919,
-      0.007377756847971117,
-      0.0027899561578318055
-    ],
-    "brevity_penalty": 1.0,
-    "length_ratio": 5.238532110091743,
-    "translation_length": 13133,
-    "reference_length": 2507
+    "blue": 11.576333655388986
   },
   "config": {
     "prefix": "",
@@ -31,7 +21,7 @@
     "instruction_tokens": null,
     "batch_size": 1,
     "max_length_generation": 1024,
-    "precision": "fp16",
+    "precision": "bf16",
     "load_in_8bit": false,
     "load_in_4bit": false,
     "left_padding": false,
